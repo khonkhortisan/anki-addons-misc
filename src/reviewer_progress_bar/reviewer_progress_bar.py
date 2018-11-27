@@ -22,6 +22,9 @@ from aqt.utils import showInfo
 from aqt.qt import *
 from aqt import mw
 
+#for nagware
+import os
+
 __version__ = '2.0.0'
 
 ############## USER CONFIGURATION START ##############
@@ -252,6 +255,8 @@ def updatePB():
         else:
             progressBar.setFormat("%d / %d" % (pbValue, pbMax))
     nmApplyStyle()
+    with open(os.getenv('APPDATA')+'/Anki2/addons21/AnkiNagwareNumReviews.txt', 'w') as f:
+        f.write(str(barSize-curr))
 
 
 def setFloatingPB():
