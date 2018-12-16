@@ -18,6 +18,15 @@ global controlmediaplayer:=true
 ;+Volume_Mute::Send {Media_Play_Pause}
 ;+Volume_Mute::Send {Media_Stop}
 
+;dayend:
+;	0	atmidnight or bedtime
+;	1	24hourslater
+dayend=0
+
+;finish all reviews before midnight or bedtime
+bedtime:=2400
+
+
 oldreviews := reviews
 inanki=-1
 Loop
@@ -30,12 +39,18 @@ Loop
 	
 		;time until midnight or spread out over 24 hours?
 		;time to wait before activating anki for another card
-		;Because I don't know when people work (500 cards 5 minutes before midnight doesn't let you do anything else), I'll just use 24 hours, and let it average out.
+		;Because I don't know when people work (500 cards 5 minutes before midnight doesn't let you do anything else), I'll just use 24 hours, and let it average out. NO THIS LEAVES A BACKLOG EVERY TIME and I'm not raising the window now
 		;at least nag once a day to catch new reviews after having done them all
 		
 		start:=A_Now
-		cardwait:=24*60/(reviews+1)
 		
+		if dayend=1
+		{
+			;24 hours later
+			minutesleftinday:=24*60
+			;cardwait:=24*60/(reviews+1)
+			cardwait:=minutesleftinday/(reviews+1)
+		}
 		
 	} else {
 		behindcount-=oldreviews-reviews
@@ -44,6 +59,18 @@ Loop
 	}
 	oldreviews := reviews
 
+	if dayend=0
+	{
+		;finish at midnight or bedtime
+		bedtimeminutes:=SubStr(bedtime,1,2)*60+SubStr(bedtime,3,2)
+		FormatTime, starth, start, H
+		FormatTime, startm, start, m
+		startminutes:=starth*60+startm
+		minutesleftinday:=bedtimeminutes-startminutes
+		;cardwait:=24*60/(reviews+1)
+		cardwait:=minutesleftinday/(reviews+1)
+	}
+
 	;toggle music
 	WinGet, Active_ID, ID, A
 	WinGet, Active_Process, ProcessName, ahk_id %Active_ID%
@@ -51,6 +78,12 @@ Loop
 	{
 		if inanki=0
 		{
+			;somehow not needed in this direction
+			;wait until done with alt-tab, so you can actually use that menu
+			;while GetKeyState("LAlt")
+			;{
+			;}
+			
 			;hopefully this acts as Media_Play
 			if controlmediaplayer
 				Send {Media_Play_Pause}
